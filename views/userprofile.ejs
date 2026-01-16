@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title><%= profileUser.username %>'s Profile</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+  <!-- Navbar -->
+  <div class="bg-white shadow px-6 py-4 flex justify-between">
+    <a href="/feed" class="text-blue-500 font-semibold">← Back to Feed</a>
+    <a href="/profile" class="text-blue-500">My Profile</a>
+  </div>
+
+  <div class="max-w-3xl mx-auto mt-8 px-4 flex flex-col gap-6">
+
+    <!-- ================= USER INFO ================= -->
+    <div class="bg-white p-6 rounded shadow flex items-center justify-between">
+
+      <div class="flex items-center gap-4">
+
+        <img src="<%= profileUser.profilepic %>"
+          class="w-20 h-20 rounded-full object-cover border"
+        />
+
+        <div>
+          <h2 class="text-2xl font-bold text-gray-700">
+            <%= profileUser.username %>
+          </h2>
+          <p class="text-gray-500">
+            <%= profileUser.posts.length %> posts
+          </p>
+        </div>
+
+        <!-- Message -->
+        <a href="/chat/<%= profileUser._id %>" class="text-blue-500">
+          Message
+        </a>
+
+        <!-- Ban system -->
+        <% if (currentUser.role === "admin" || currentUser.role === "moderator") { %>
+          <% if (!profileUser.isBanned) { %>
+            <form action="/ban/user/<%= profileUser._id %>" method="POST">
+              <input type="number" name="days" placeholder="Days" required>
+              <input type="text" name="reason" placeholder="Reason" required>
+              <button style="color:red;">Ban User</button>
+            </form>
+          <% } else { %>
+            <p style="color:red;">
+              User is banned until <%= profileUser.banUntil.toDateString() %>
+            </p>
+            <a href="/unban/user/<%= profileUser._id %>">
+              <button>Remove Ban</button>
+            </a>
+          <% } %>
+        <% } %>
+
+      </div>
+
+      <!-- ========== FOLLOW LOGIC (FIXED) ========== -->
+      <!-- ========== FOLLOW LOGIC (FIXED) ========== -->
+
+      <% if (currentUser._id.toString() !== profileUser._id.toString()) { %>
+
+        <% 
+          const isFollowing = profileUser.followers
+            .map(id => id.toString())
+            .includes(currentUser._id.toString());
+
+          const hasRequested = profileUser.followRequests
+            .map(id => id.toString())
+            .includes(currentUser._id.toString());
+        %>
+
+        <% if (isFollowing) { %>
+          <button
+            type="button"
+            class="follow-btn bg-red-500 text-white px-4 py-2 rounded"
+            data-userid="<%= profileUser._id %>">
+            Unfollow
+          </button>
+
+        <% } else if (profileUser.isPrivate && hasRequested) { %>
+          <button
+            type="button"
+            class="bg-gray-400 text-white px-4 py-2 rounded cursor-not-allowed"
+            disabled>
+            Request Sent
+          </button>
+
+        <% } else { %>
+          <button
+            type="button"
+            class="follow-btn bg-blue-500 text-white px-4 py-2 rounded"
+            data-userid="<%= profileUser._id %>">
+            Follow
+          </button>
+        <% } %>
+
+      <% } %>
+
+
+    </div>
+    <!-- ================= END USER INFO ================= -->
+
+
+    <!-- ================= USER POSTS ================= -->
+    <div class="bg-white p-6 rounded shadow flex flex-col gap-4">
+
+      <h3 class="text-xl font-semibold text-gray-700">
+        Posts by <%= profileUser.username %>
+      </h3>
+
+      <% if (profileUser.posts.length === 0) { %>
+        <p class="text-gray-500">No posts yet.</p>
+      <% } %>
+
+      <% profileUser.posts.slice().reverse().forEach(post => { %>
+
+        <div class="border rounded-lg p-4 flex flex-col gap-2">
+
+          <!-- Date -->
+          <p class="text-xs text-gray-500">
+            <%= new Date(post.date).toLocaleString("en-IN", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit"
+              }) %>
+          </p>
+
+          <!-- Admin / Mod delete -->
+          <% if (currentUser.role === "admin" || currentUser.role === "moderator") { %>
+            <a href="/moderate/post/delete/<%= post._id %>"
+               onclick="return confirm('Delete this post?')">
+              <button style="color:red;">Delete</button>
+            </a>
+          <% } %>
+
+          <!-- Content -->
+          <p class="text-gray-700">
+            <%= post.content %>
+          </p>
+
+          <!-- LIKE (AJAX READY) -->
+          <% 
+            const liked = post.likes
+              .map(id => id.toString())
+              .includes(currentUser._id.toString());
+          %>
+
+          <button
+            type="button"
+            class="like-btn text-blue-500 text-sm self-start"
+            data-postid="<%= post._id %>">
+            <%= liked ? "Unlike" : "Like" %>
+            <span class="like-count">(<%= post.likes.length %>)</span>
+          </button>
+
+          <!-- COMMENTS -->
+          <div class="mt-2 border-t pt-2">
+
+            <div class="comments-box">
+              <% if (post.comments.length > 0) { %>
+                <% post.comments.forEach(c => { %>
+                  <div class="text-sm text-gray-700 mb-1">
+                    <span class="font-semibold">
+                      <%= c.user ? c.user.username : "Unknown" %>:
+                    </span>
+                    <%= c.text %>
+
+                    <% if (currentUser.role === "admin" || currentUser.role === "moderator") { %>
+                      <a href="/moderate/comment/delete/<%= post._id %>/<%= c._id %>"
+                         onclick="return confirm('Delete this comment?')">
+                        <button style="color:red; font-size:12px;">Delete</button>
+                      </a>
+                    <% } %>
+                  </div>
+                <% }) %>
+              <% } else { %>
+                <p class="text-sm text-gray-400">No comments yet</p>
+              <% } %>
+            </div>
+
+            <!-- AJAX COMMENT FORM -->
+            <form class="comment-form mt-2 flex gap-2"
+                  data-postid="<%= post._id %>">
+
+              <input
+                type="text"
+                name="text"
+                placeholder="Write a comment..."
+                class="flex-1 border rounded px-2 py-1 text-sm comment-input"
+                required
+              />
+
+              <button 
+                type="submit"
+                class="bg-blue-500 text-white text-sm px-3 py-1 rounded hover:bg-blue-600">
+                Post
+              </button>
+            </form>
+
+          </div>
+
+        </div>
+
+      <% }) %>
+
+    </div>
+    <!-- ================= END USER POSTS ================= -->
+
+  </div>
+
+  <!-- AJAX SCRIPTS -->
+  <script src="/javascripts/follow.js"></script>
+  <script src="/javascripts/like.js"></script>
+  <script src="/javascripts/comments.js"></script>
+
+</body>
+</html>

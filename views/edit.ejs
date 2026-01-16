@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Profile</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 min-h-screen">
+
+  <!-- Navbar -->
+  <div class="w-full bg-white shadow-md px-6 py-4 flex justify-between items-center">
+    <h2 class="text-xl font-bold text-gray-700">MyApp</h2>
+    <a href="/logout" 
+       class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition">
+       Logout
+    </a>
+  </div>
+
+  <!-- Main Container -->
+  <div class="max-w-3xl mx-auto mt-8 px-4 flex flex-col gap-6">
+
+    <!-- Create Post -->
+    <div class="bg-white p-6 rounded-xl shadow">
+      <form action="/edit/<%=post._id %>" method="post" class="flex flex-col gap-4">
+        <textarea
+          placeholder="What's on your mind?"
+          class="w-full h-28 p-3 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-400"
+          name="content"
+        ><%=post.content%></textarea>
+
+        <button
+          type="submit"
+          class="self-end bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition"
+        >
+          Update Post
+        </button>
+      </form>
+    </div>
+
+  </div>
+
+</body>
+</html>

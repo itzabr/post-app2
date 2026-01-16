@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Notifications</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+  <!-- Top Bar -->
+  <div class="bg-white shadow px-6 py-4 flex justify-between items-center">
+    <a href="/feed" class="text-blue-500 font-medium hover:underline">
+      ← Back to Feed
+    </a>
+
+    <h2 class="font-semibold text-gray-700">
+      Notifications
+    </h2>
+
+    <a href="/profile" class="text-blue-500 font-medium hover:underline">
+      My Profile
+    </a>
+  </div>
+
+  <!-- Notifications Box -->
+  <div class="max-w-xl mx-auto mt-8 bg-white rounded-lg shadow">
+
+    <h2 class="text-xl font-semibold p-4 border-b">
+      Notifications
+    </h2>
+
+    <% if (notifications.length === 0) { %>
+      <p class="p-4 text-gray-500">No notifications yet</p>
+    <% } %>
+
+    <% notifications.forEach(n => { %>
+      <div class="p-4 border-b hover:bg-gray-50 transition">
+
+        <!-- Message -->
+        <p class="text-sm text-gray-700">
+          <strong><%= n.from.username %></strong>
+
+          <% if (n.type === "like") { %>
+            liked your post
+          <% } else if (n.type === "comment") { %>
+            commented on your post
+          <% } else if (n.type === "follow") { %>
+            started following you
+            <% } else if (n.type === "follow-accepted") { %>
+            accepted your follow request
+          <% } else if (n.type === "message") { %>
+            <a href="/chat/<%= n.from._id %>" class="text-blue-500 hover:underline">
+              sent you a message
+            </a>
+          <% } else if (n.type === "follow-request") { %>
+            sent you a follow request
+          <% } %>
+        </p>
+
+        <!-- Follow Request Buttons -->
+        <% if (n.type === "follow-request") { %>
+          <div class="flex gap-3 mt-3">
+
+            <a href="/follow/request/accept/<%= n.from._id %>">
+              <button
+                class="px-4 py-1.5 bg-green-500 text-white text-sm rounded-lg 
+                       hover:bg-green-600 transition shadow">
+                Accept
+              </button>
+            </a>
+
+            <a href="/follow/request/reject/<%= n.from._id %>">
+              <button
+                class="px-4 py-1.5 bg-red-500 text-white text-sm rounded-lg 
+                       hover:bg-red-600 transition shadow">
+                Reject
+              </button>
+            </a>
+
+          </div>
+        <% } %>
+
+        <!-- Post Preview -->
+        <% if (n.post) { %>
+          <p class="text-sm text-gray-500 italic mt-2">
+            "<%= n.post.content.substring(0, 60) %>..."
+          </p>
+        <% } %>
+
+        <!-- Time -->
+        <p class="text-xs text-gray-400 mt-2">
+          <%= new Date(n.createdAt).toLocaleString() %>
+        </p>
+
+        <!-- View Post -->
+        <% if (n.post) { %>
+          <a href="/post/<%= n.post._id %>" 
+             class="text-xs text-blue-500 hover:underline">
+            View post
+          </a>
+        <% } %>
+
+      </div>
+    <% }) %>
+
+  </div>
+
+</body>
+</html>

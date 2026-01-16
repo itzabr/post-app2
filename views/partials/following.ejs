@@ -1,0 +1,30 @@
+<div class="w-full">
+
+  <h3 class="text-lg font-semibold text-gray-700 mb-4 text-center">
+    Following
+  </h3>
+
+  <% if (users.length === 0) { %>
+    <p class="text-sm text-gray-400 text-center">
+      Not following anyone
+    </p>
+  <% } %>
+
+  <div class="flex flex-col gap-3">
+    <% users.forEach(u => { %>
+      <a 
+        href="/user/<%= u._id %>"
+        class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 transition"
+      >
+        <img src="<%= u.profilepic %>"
+        class="w-10 h-10 rounded-full object-cover border"
+        />
+
+        <span class="font-medium text-gray-700">
+          <%= u.username %>
+        </span>
+      </a>
+    <% }) %>
+  </div>
+
+</div>

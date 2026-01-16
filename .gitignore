@@ -1,0 +1,11 @@
+# Dependencies
+node_modules/
+# Environment Variables (SECRETS)
+.env
+# Uploads (Keep folder structure, ignore files)
+public/images/uploads/*
+!public/images/uploads/.gitkeep
+
+# System files
+.DS_Store
+Thumbs.db

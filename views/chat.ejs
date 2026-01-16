@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chat</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+<!-- Header -->
+<div class="bg-white shadow px-6 py-4 flex justify-between">
+  <a href="javascript:history.back()" class="text-blue-500">← Back</a>
+  <h2 class="font-semibold text-gray-700">
+    Chat with <%= otherUser.username %>
+  </h2>
+</div>
+
+<!-- Chat box -->
+<div class="max-w-xl mx-auto mt-4 bg-white rounded shadow p-4 h-[70vh] flex flex-col">
+
+  <!-- Messages -->
+  <div id="chatBox" class="flex-1 overflow-y-auto flex flex-col gap-2">
+
+    <% messages.forEach(m => { %>
+
+      <% if (m.from.toString() === currentUser) { %>
+        <!-- My message -->
+        <div class="self-end bg-blue-500 text-white px-3 py-2 rounded-lg max-w-xs">
+          <%= m.text %>
+        </div>
+      <% } else { %>
+        <!-- Their message -->
+        <div class="self-start bg-gray-200 text-gray-700 px-3 py-2 rounded-lg max-w-xs">
+          <%= m.text %>
+        </div>
+      <% } %>
+
+    <% }) %>
+
+  </div>
+
+  <!-- Send message (NO action, NO method) -->
+  <form id="chatForm" class="flex gap-2 mt-3">
+    <input
+      type="text"
+      id="msgInput"
+      placeholder="Type a message..."
+      class="flex-1 border rounded px-3 py-2"
+      required
+    />
+    <button class="bg-blue-500 text-white px-4 rounded">
+      Send
+    </button>
+  </form>
+
+</div>
+
+<!-- ================= SOCKET.IO ================= -->
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  const socket = io();
+
+  // tell server who I am
+  socket.emit("join", "<%= currentUser %>");
+
+  const form = document.getElementById("chatForm");
+  const input = document.getElementById("msgInput");
+  const box = document.getElementById("chatBox");
+
+  // ---------------- STEP 3 ----------------
+  // Send message in real-time
+  form.addEventListener("submit", e => {
+    e.preventDefault();
+
+    socket.emit("sendMessage", {
+      from: "<%= currentUser %>",
+      to: "<%= otherUser._id %>",
+      text: input.value
+    });
+
+    input.value = "";
+  });
+
+  // ---------------- STEP 4 ----------------
+  // Receive message in real-time
+  socket.on("newMessage", msg => {
+    const div = document.createElement("div");
+
+    if (msg.from === "<%= currentUser %>") {
+      div.className = "self-end bg-blue-500 text-white px-3 py-2 rounded-lg max-w-xs";
+    } else {
+      div.className = "self-start bg-gray-200 text-gray-700 px-3 py-2 rounded-lg max-w-xs";
+    }
+
+    div.innerText = msg.text;
+    box.appendChild(div);
+
+    // auto scroll to bottom
+    box.scrollTop = box.scrollHeight;
+  });
+</script>
+
+</body>
+</html>

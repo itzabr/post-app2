@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chats</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+<!-- Header -->
+<div class="bg-white shadow px-6 py-4 flex justify-between">
+  <a href="/feed" class="text-blue-500">← Back to Feed</a>
+  <h2 class="font-semibold text-gray-700">Your Chats</h2>
+</div>
+
+<div class="max-w-md mx-auto mt-6 bg-white rounded shadow divide-y">
+
+  <% if (chatUsers.length === 0) { %>
+    <p class="p-4 text-gray-500 text-center">No chats yet</p>
+  <% } %>
+
+  <% chatUsers.forEach(u => { %>
+    <a href="/chat/<%= u._id %>" 
+       class="flex items-center gap-3 p-3 hover:bg-gray-100">
+
+      <img 
+        src="<%= u.profilepic && u.profilepic.startsWith('http')
+              ? u.profilepic
+              : '/images/uploads/' + (u.profilepic || 'male.png') %>"
+        class="w-10 h-10 rounded-full object-cover border"
+      >
+
+      <span class="font-medium text-gray-700">
+        <%= u.username %>
+      </span>
+    </a>
+  <% }) %>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>All Posts</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet"
+ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body class="bg-gray-100 min-h-screen">
+<!-- ================= NAVBAR ================= -->
+<div class="bg-white shadow px-6 py-4 flex justify-between items-center">
+  <!-- Left -->
+  <h2 class="font-bold text-lg">All Posts</h2>
+  <% if (user.role === "admin") { %>
+    <a href="/admin/users"
+      class="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-indigo-600 
+              text-white px-4 py-2 rounded-lg shadow 
+              hover:from-purple-600 hover:to-indigo-700 
+               transition duration-300 text-sm font-medium">
+      <i class="fa-solid fa-users-gear"></i>
+      Manage Users
+    </a>
+  <% } %>
+  <div class="flex items-center gap-2">
+    <!-- All Posts -->
+    <a href="/feed"
+      class="px-4 py-2 rounded-lg text-sm font-medium transition
+      <%= !isFollowingFeed 
+          ? 'bg-black text-white shadow' 
+          : 'bg-gray-200 text-gray-700 hover:bg-gray-300' %>">
+      All Posts
+    </a>
+    <!-- Following -->
+    <a href="/feed/following"
+      class="px-4 py-2 rounded-lg text-sm font-medium transition
+      <%= isFollowingFeed 
+          ? 'bg-black text-white shadow' 
+          : 'bg-gray-200 text-gray-700 hover:bg-gray-300' %>">
+      Following
+    </a>
+  </div>
+  <!-- Center : Search -->
+  <div class="relative w-64">
+    <input
+      type="text"
+      id="searchInput"
+      placeholder="Search users..."
+      class="w-full border rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+      autocomplete="off"
+    >
+    <div id="suggestions" 
+         class="absolute left-0 right-0 bg-white border rounded-lg shadow mt-1 hidden z-50"></div>
+  </div>
+  <!-- Right -->
+  <div class="flex items-center gap-4">
+    <a href="/chats" class="text-gray-600 hover:text-blue-500 text-xl">
+    <i class="fa-solid fa-comment-dots"></i>
+    </a>
+    <a href="/notifications" class="relative text-gray-600 hover:text-blue-500 text-xl">
+        🔔
+        <% if (unreadCount > 0) { %>
+            <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-1">
+            <%= unreadCount %>
+            </span>
+        <% } %>
+    </a>
+    <!-- Profile Pic -->
+    <img 
+      src="<%= user.profilepic 
+            ? (user.profilepic.startsWith('http') 
+                ? user.profilepic 
+                : '/images/uploads/' + user.profilepic) 
+            : '/images/uploads/male.png' %>" 
+      class="w-10 h-10 rounded-full object-cover border"
+    />
+    <a href="/profile"
+      class="flex items-center gap-1 text-blue-500 font-medium 
+              hover:text-blue-600 transition">
+      <i class="fa-solid fa-user"></i>
+      My Profile
+    </a>
+    <a href="/logout"
+      class="flex items-center gap-1 text-red-500 font-medium 
+              hover:text-red-600 transition">
+      <i class="fa-solid fa-right-from-bracket"></i>
+      Logout
+    </a>
+  </div>
+</div>
+<!-- ================= FEED ================= -->
+<div class="max-w-2xl mx-auto mt-6 flex flex-col gap-6">
+  <!-- Create Post -->
+  <div class="bg-white p-4 rounded shadow">
+    <h3 class="font-semibold text-gray-700 mb-2">
+      Hi, <span class="text-blue-500"><%= user.name %></span> 👋
+    </h3>
+    <form action="/post" method="POST" class="flex flex-col gap-3">
+      <textarea
+        name="content"
+        placeholder="What's on your mind?"
+        class="w-full h-24 p-3 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+        required
+      ></textarea>
+      <button type="submit"
+        class="self-end flex items-center gap-2 bg-blue-500 text-white 
+              px-5 py-2 rounded-lg shadow 
+              hover:bg-blue-600 hover:scale-105 
+              transition duration-300 text-sm font-semibold">
+        <i class="fa-solid fa-paper-plane"></i>
+        Post
+      </button>
+    </form>
+  </div>
+  <!-- POSTS -->
+  <% posts.forEach(post => { %>
+    <div class="bg-white p-4 rounded shadow">
+      <!-- Author -->
+      <a href="/user/<%= post.user._id %>" 
+         class="flex items-center gap-3 hover:underline">
+        <img src="<%= post.user.profilepic %>"
+          class="w-10 h-10 rounded-full object-cover border"
+        >
+        <span class="font-semibold text-gray-700">
+          <%= post.user ? post.user.username : "Unknown" %>
+        </span>
+      </a>
+      <% if (currentUser.role === "admin" || currentUser.role === "moderator") { %>
+        <a href="/moderate/post/delete/<%= post._id %>"
+          onclick="return confirm('Delete this post?')">
+          <button style="color:red;">Delete</button>
+        </a>
+      <% } %>
+      <!-- Time and Date -->
+      <p class="text-xs text-gray-500">
+        <%= new Date(post.date).toLocaleString("en-IN", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit"
+            }) %>
+        </p>
+      <!-- Content -->
+      <p class="text-gray-600 mt-2"><%= post.content %></p>
+      <!-- COMMENTS -->
+      <div class="mt-3 border-t pt-3">
+        <% if (post.comments.length > 0) { %>
+          <div class="comments-box">
+            <% post.comments.forEach(c => { %>
+              <div class="text-sm text-gray-700 mb-1">
+                <span class="font-semibold">
+                  <%= c.user ? c.user.username : "Unknown" %>:
+                </span>
+                <%= c.text %>
+                <% if (currentUser.role === "admin" || currentUser.role === "moderator") { %>
+                  <a href="/moderate/comment/delete/<%= post._id %>/<%= c._id %>"
+                    onclick="return confirm('Delete this comment?')">
+                    <button style="color:red; font-size:12px;">Delete</button>
+                  </a>
+                <% } %>
+              </div>
+            <% }) %>
+          </div>
+        <% } else { %>
+          <div class="comments-box">
+            <p class="text-sm text-gray-400">No comments yet</p>
+          </div>
+        <% } %>
+        <!-- AJAX Comment Form -->
+        <form class="comment-form mt-2 flex gap-2"
+              data-postid="<%= post._id %>">
+          <input
+            type="text"
+            name="text"
+            placeholder="Write a comment..."
+            class="flex-1 border rounded px-2 py-1 text-sm comment-input"
+            required
+          />
+          <button 
+            type="submit"
+            class="bg-blue-500 text-white text-sm px-3 py-1 rounded hover:bg-blue-600">
+            Post
+          </button>
+        </form>
+      </div>
+      <!-- ACTIONS -->
+      <div class="flex items-center gap-4 mt-3 text-sm">
+        <!-- Like / Unlike -->
+          <% const liked = post.likes.map(id => id.toString()).includes(currentUser._id.toString()); %>
+          <button
+            type="button"
+            class="like-btn text-blue-500 text-sm"
+            data-postid="<%= post._id %>">
+            <%= liked ? "Unlike" : "Like" %>
+            <span class="like-count">(<%= post.likes.length %>)</span>
+          </button>
+      </div>
+    </div>
+  <% }) %>
+</div>
+<!-- ================= LIKES MODAL ================= -->
+<div id="likesModal" 
+     class="fixed inset-0 bg-black bg-opacity-40 hidden flex items-center justify-center z-50">
+  <div class="bg-white w-80 rounded-lg shadow-lg p-4">
+    <div class="flex justify-between items-center mb-3">
+      <h3 class="font-semibold text-gray-700">Liked by</h3>
+      <button onclick="closeLikesModal()"
+        class="w-7 h-7 flex items-center justify-center rounded-full 
+              bg-gray-100 hover:bg-red-100 text-gray-600 hover:text-red-600 
+              transition">
+        ✕
+      </button>
+    </div>
+    <div id="likesList" 
+         class="flex flex-col gap-2 max-h-60 overflow-y-auto"></div>
+  </div>
+</div>
+<!-- ================= SEARCH SCRIPT ================= -->
+<script>
+const input = document.getElementById("searchInput");
+const box = document.getElementById("suggestions");
+input.addEventListener("input", async () => {
+  const value = input.value.trim();
+  if (!value) {
+    box.innerHTML = "";
+    box.classList.add("hidden");
+    return;
+  }
+  const res = await fetch(`/search/users?q=${value}`);
+  const users = await res.json();
+  if (users.length === 0) {
+    box.innerHTML = "<p class='p-2 text-sm text-gray-500'>No users found</p>";
+    box.classList.remove("hidden");
+    return;
+  }
+  box.innerHTML = users.map(u => `
+    <a href="/user/${u._id}" 
+       class="flex items-center gap-2 p-2 hover:bg-gray-100 text-sm">
+      <img 
+        src="${u.profilepic && u.profilepic.startsWith('http')
+              ? u.profilepic
+              : '/images/uploads/' + (u.profilepic || 'male.png')}"
+        class="w-8 h-8 rounded-full object-cover border"
+      >
+      <span>${u.username}</span>
+    </a>
+  `).join("");
+  box.classList.remove("hidden");
+});
+</script>
+<!-- ================= LIKES MODAL SCRIPT ================= -->
+<script>
+async function showLikes(postId) {
+  const res = await fetch(`/post/${postId}/likes`);
+  const users = await res.json();
+  const list = document.getElementById("likesList");
+  if (users.length === 0) {
+    list.innerHTML = "<p class='text-sm text-gray-500'>No likes yet</p>";
+  } else {
+    list.innerHTML = users.map(u => `
+      <div class="flex items-center gap-3">
+        <img 
+          src="${u.profilepic && u.profilepic.startsWith('http')
+                ? u.profilepic
+                : '/images/uploads/' + (u.profilepic || 'male.png')}"
+          class="w-8 h-8 rounded-full object-cover border"
+        />
+        <a href="/user/${u._id}" class="text-sm text-blue-500 hover:underline">
+          ${u.username}
+        </a>
+      </div>
+    `).join("");
+  }
+  document.getElementById("likesModal").classList.remove("hidden");
+}
+function closeLikesModal() {
+  document.getElementById("likesModal").classList.add("hidden");
+}
+</script>
+<script src="/javascripts/like.js"></script>
+<script src="/javascripts/comments.js"></script>
+</body>
+</html>

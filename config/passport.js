@@ -9,7 +9,6 @@ passport.use(new GoogleStrategy({
   process.env.NODE_ENV === "production"
     ? "https://postapp-nakf.onrender.com/auth/google/callback"
     : "http://localhost:3000/auth/google/callback"
-
 }, async (accessToken, refreshToken, profile, done) => {
 
   try {

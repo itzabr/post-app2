@@ -21,3 +21,29 @@ module.exports = async (to, link) => {
     console.error("❌ Mail error:", err.message);
   }
 };
+
+
+// const { Resend } = require("resend");
+
+// console.log("🔑 RESEND_API_KEY =", process.env.RESEND_API_KEY);
+
+// const resend = new Resend(process.env.RESEND_API_KEY);
+
+// module.exports = async function sendMail(to, verifyLink) {
+//   try {
+//     const result = await resend.emails.send({
+//       from: "PostApp <onboarding@resend.dev>",
+//       to,
+//       subject: "Verify your PostApp account",
+//       html: `
+//         <h2>Email Verification</h2>
+//         <p>Click the link below:</p>
+//         <a href="${verifyLink}">${verifyLink}</a>
+//       `
+//     });
+
+//     console.log("📨 Resend response:", result);
+//   } catch (err) {
+//     console.error("❌ Resend error:", err);
+//   }
+// };
